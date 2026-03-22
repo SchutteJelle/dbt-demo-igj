@@ -1,0 +1,80 @@
+# =============================================================================
+# dbt_project.yml
+# Projectconfiguratie voor de IGJ Beschermende Plaatsingen pipeline
+#
+# Adapter: dbt-sqlserver (Microsoft SQL Server)
+# Installeer met: pip install dbt-sqlserver
+#
+# Leer-tip: Dit bestand definieert de structuur van het hele DBT project.
+# De 'models' sectie bepaalt standaard materialisaties per laag.
+# =============================================================================
+
+name: 'igj_beschermende_plaatsingen'
+version: '1.0.0'
+config-version: 2
+
+# Het profiel verwijst naar ~/.dbt/profiles.yml waar de
+# database-verbinding is geconfigureerd (server, database, schema).
+profile: 'igj_beschermende_plaatsingen'
+
+# Mappen waar DBT bestanden zoekt
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+# Map voor gecompileerde SQL en run-resultaten (niet in versiebeheer)
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# =============================================================================
+# Model-configuraties per laag
+# De drielagenarchitectuur is een best practice in DBT:
+#   1. Staging    - Ruwe data opschonen, 1-op-1 met bronnen
+#   2. Intermediate - Businesslogica, joins, SCD
+#   3. Marts      - Eindproducten voor dashboards / rapportages
+# =============================================================================
+models:
+  igj_beschermende_plaatsingen:
+
+    # Staging laag: views zijn goedkoop en altijd actueel
+    staging:
+      +materialized: view
+      +schema: staging
+      +tags: ['staging']
+
+    # Intermediate laag: tables voor herbruikbare businesslogica
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+      +tags: ['intermediate']
+
+    # Marts laag: incrementele tabellen voor dashboard performance
+    marts:
+      +materialized: incremental
+      +schema: marts
+      +tags: ['marts']
+
+# =============================================================================
+# Variabelen die in modellen gebruikt kunnen worden via {{ var('naam') }}
+# =============================================================================
+vars:
+  # Startdatum voor initiële laad van de incrementele mart
+  # Aanpassen naar de vroegste kwartaal in de brondata
+  igj_start_datum: '2020-01-01'
+
+  # Geldige machtigingsvormen conform Wvggz wetgeving
+  geldige_machtigingsvormen:
+    - 'IBS'   # Inbewaringstelling (crisismaatregel, max 3 dagen)
+    - 'RM'    # Rechterlijke machtiging
+    - 'ZM'    # Zorgmachtiging (vervangt RM per 2020)
+
+# =============================================================================
+# Packages: externe DBT bibliotheken
+# Installeer met: dbt deps
+# =============================================================================
+# Zie packages.yml voor de package-definities

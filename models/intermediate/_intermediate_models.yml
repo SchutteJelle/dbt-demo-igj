@@ -1,0 +1,113 @@
+# =============================================================================
+# _intermediate_models.yml
+# Documentatie en tests voor de intermediate laag modellen
+# =============================================================================
+
+version: 2
+
+models:
+  - name: int_plaatsingen_scd2
+    description: >
+      Intermediate model dat SCD Type 2 (Slowly Changing Dimension) logica
+      implementeert voor beschermende plaatsingen. Alle versies van elk record
+      worden bijgehouden, inclusief de geldigheidsdatums per versie.
+
+      Dit model lost het correctieprobleem op: als een zorgaanbieder in Q3 een
+      correctie stuurt op een Q1-aanlevering, dan bevat dit model BEIDE versies
+      met de juiste valid_from/valid_to datums.
+
+      Eén rij in dit model = één versie van één plaatsing.
+      Gebruik is_actief_versie = 1 om alleen de actuele stand te zien.
+
+      Gebruik dit model als je historische analyses wilt doen ('hoe zag de
+      data eruit per kwartaal?') of als je wilt weten hoeveel correcties er
+      zijn geweest op een bepaalde plaatsing.
+
+    columns:
+      - name: plaatsing_versie_sk
+        description: >
+          Surrogate key uniek per versie van een plaatsing.
+          Gegenereerd op basis van bron_systeem_id + versie_nummer.
+        tests:
+          - not_null
+          - unique
+
+      - name: plaatsing_sk
+        description: >
+          Surrogate key van het staging model. Verwijst terug naar
+          stg_beschermende_plaatsingen voor traceerbaarheid.
+        tests:
+          - not_null
+
+      - name: bron_systeem_id
+        description: >
+          Identifier uit het bronsysteem van de zorgaanbieder.
+          Niet uniek in dit model - één bron_systeem_id kan meerdere versies hebben.
+        tests:
+          - not_null
+
+      - name: versie_nummer
+        description: >
+          Oplopend versienummer per bron_systeem_id. Versie 1 = originele aanlevering,
+          versie 2 = eerste correctie, versie 3 = tweede correctie, etc.
+        tests:
+          - not_null
+
+      - name: valid_from
+        description: >
+          De eerste dag van het kwartaal van aanlevering. Dit is de datum
+          vanaf wanneer deze versie van het record als geldig beschouwd wordt.
+        tests:
+          - not_null
+
+      - name: valid_to
+        description: >
+          De eerste dag van het kwartaal van de VOLGENDE versie.
+          NULL betekent dat dit de meest recente versie is.
+
+      - name: is_actief_versie
+        description: >
+          1 als dit de meest recente, niet-ingetrokken versie is. 0 anders.
+          Filter op is_actief_versie = 1 voor de actuele stand van zaken.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: is_ingetrokken
+        description: 1 als het record door de zorgaanbieder is ingetrokken. 0 anders.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: is_correctie
+        description: 1 als dit record een correctie is op een eerdere aanlevering. 0 anders.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: is_eerste_versie
+        description: 1 als dit de originele aanlevering is (versie_nummer = 1). 0 anders.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: machtigingsvorm
+        description: Machtigingsvorm van DEZE versie van het record.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['IBS', 'RM', 'ZM']
+
+      - name: startdatum_plaatsing
+        description: Startdatum van DEZE versie. Kan verschillen van eerdere versies bij correcties.
+        tests:
+          - not_null
+
+      - name: bsn_geanonimiseerd
+        description: Gehashte BSN. Hoort consistent te zijn over alle versies.
+        tests:
+          - not_null

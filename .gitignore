@@ -1,0 +1,13 @@
+# DBT gegenereerde bestanden
+target/
+dbt_packages/
+logs/
+
+# Gevoelige configuratiebestanden
+profiles.yml
+
+# Python
+__pycache__/
+*.py[cod]
+.env
+venv/
