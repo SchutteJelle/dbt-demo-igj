@@ -12,7 +12,6 @@ Doel:
 - In 10 minuten laten zien waarom deze pipeline betrouwbaar is
 - Focus op businesswaarde, SCD2-correcties en datakwaliteit
 
-Spreektijd: 45-60 sec
 
 ---
 
@@ -26,7 +25,6 @@ Context:
 Kernvraag:
 - Hoe maken we rapportage-data consistent, auditeerbaar en herhaalbaar?
 
-Spreektijd: 75 sec
 
 ---
 
@@ -41,7 +39,6 @@ Waarom dit werkt:
 - Duidelijke scheiding van verantwoordelijkheden
 - Transparante SQL per stap
 
-Spreektijd: 75 sec
 
 ---
 
@@ -56,7 +53,6 @@ Impact:
 - Historische analyse blijft mogelijk
 - Correcties overschrijven niets, maar worden netjes geversioneerd
 
-Spreektijd: 90 sec
 
 ---
 
@@ -75,7 +71,6 @@ Impact:
 - Snelle dashboard-queries
 - Direct bruikbare indicatoren voor toezicht
 
-Spreektijd: 75 sec
 
 ---
 
@@ -92,7 +87,6 @@ Wat dit afvangt:
 Resultaat:
 - Betrouwbare output en vroegtijdige foutdetectie
 
-Spreektijd: 75 sec
 
 ---
 
@@ -109,7 +103,6 @@ Wat ik laat zien:
 - Lineage van staging -> intermediate -> mart
 - Eindtabel met actuele plaatsingen en KPI's
 
-Spreektijd: 120 sec
 
 ---
 
@@ -125,4 +118,3 @@ Volgende stap:
 
 Bedankt. Vragen?
 
-Spreektijd: 45 sec
