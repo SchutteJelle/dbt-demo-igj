@@ -1,0 +1,67 @@
+# =============================================================================
+# docker-compose.yml
+# Orchestreert twee services voor de DBT live demo:
+#   1. postgres  – PostgreSQL database (vervangt SQL Server in de productieomgeving)
+#   2. dbt       – DBT runner met dbt-postgres adapter
+#
+# Snel starten:
+#   docker compose up -d postgres
+#   docker compose run --rm dbt dbt deps
+#   docker compose run --rm dbt dbt seed
+#   docker compose run --rm dbt dbt run
+#   docker compose run --rm dbt dbt test
+#
+# Of alles in één keer via het helper-script:
+#   ./run_demo.sh
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: igj_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dbt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dbt_demo_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-igj_demo}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dbt} -d ${POSTGRES_DB:-igj_demo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # DBT runner
+  # ---------------------------------------------------------------------------
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    container_name: igj_dbt
+    working_dir: /usr/app/dbt
+    volumes:
+      - ./dbt:/usr/app/dbt           # mount project zodat je lokale wijzigingen meteen zichtbaar zijn
+      - dbt_packages:/usr/app/dbt/dbt_packages  # cache voor gedownloade packages
+    environment:
+      DBT_HOST: postgres
+      DBT_PORT: 5432
+      DBT_USER: ${POSTGRES_USER:-dbt}
+      DBT_PASSWORD: ${POSTGRES_PASSWORD:-dbt_demo_2024}
+      DBT_DBNAME: ${POSTGRES_DB:-igj_demo}
+      DBT_SCHEMA: public
+      DBT_THREADS: 4
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  dbt_packages:

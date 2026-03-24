@@ -1,0 +1,84 @@
+# =============================================================================
+# dbt_project.yml
+# Projectconfiguratie voor de IGJ Beschermende Plaatsingen demo pipeline
+#
+# Adapter: dbt-postgres (PostgreSQL)
+# Verschil met productie: SQL Server → PostgreSQL, maar de logica is identiek.
+#
+# Leer-tip: Dit bestand definieert de structuur van het hele DBT project.
+# De 'models' sectie bepaalt standaard materialisaties per laag.
+# =============================================================================
+
+name: 'igj_beschermende_plaatsingen'
+version: '1.0.0'
+config-version: 2
+
+profile: 'igj_beschermende_plaatsingen'
+
+# Mappen waar DBT bestanden zoekt
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+# Map voor gecompileerde SQL en run-resultaten (niet in versiebeheer)
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# =============================================================================
+# Seeds configuratie
+# Seeds worden geladen in het 'raw' schema, wat overeenkomt met de bron
+# definitie in _staging_sources.yml. Dit simuleert de landingstabellen.
+# =============================================================================
+seeds:
+  igj_beschermende_plaatsingen:
+    +schema: raw
+    +column_types:
+      id: integer
+      bsn_geanonimiseerd: varchar
+      zorgaanbieder_agb_code: varchar
+      machtigingsvorm: varchar
+      startdatum_plaatsing: date
+      einddatum_plaatsing: date
+      locatie_code: varchar
+      diagnose_code: varchar
+      kwartaal_levering: varchar
+      aanleverdatum: date
+      bron_systeem_id: varchar
+      record_status: varchar
+
+# =============================================================================
+# Model-configuraties per laag (drielagenarchitectuur)
+# =============================================================================
+models:
+  igj_beschermende_plaatsingen:
+
+    staging:
+      +materialized: view
+      +schema: staging
+      +tags: ['staging']
+
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+      +tags: ['intermediate']
+
+    marts:
+      +materialized: incremental
+      +schema: marts
+      +tags: ['marts']
+
+# =============================================================================
+# Variabelen die in modellen gebruikt kunnen worden via {{ var('naam') }}
+# =============================================================================
+vars:
+  igj_start_datum: '2022-01-01'
+
+  geldige_machtigingsvormen:
+    - 'IBS'
+    - 'RM'
+    - 'ZM'
