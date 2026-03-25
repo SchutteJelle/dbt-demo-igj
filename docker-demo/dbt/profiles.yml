@@ -1,0 +1,31 @@
+# =============================================================================
+# profiles.yml
+# DBT verbindingsprofiel voor de PostgreSQL demo-omgeving.
+#
+# Omgevingsvariabelen (ingesteld via docker-compose of .env):
+#   DBT_HOST     – hostname van de PostgreSQL server (default: postgres)
+#   DBT_PORT     – poort                             (default: 5432)
+#   DBT_USER     – gebruikersnaam                    (default: dbt)
+#   DBT_PASSWORD – wachtwoord                        (vereist)
+#   DBT_DBNAME   – database naam                     (default: igj_demo)
+#   DBT_SCHEMA   – standaard schema                  (default: public)
+#   DBT_THREADS  – parallelle threads                (default: 4)
+#
+# Leer-tip: In productie staat profiles.yml BUITEN het project (in ~/.dbt/)
+# en nooit in versiebeheer. Voor demo/Docker is het handig het er wél in
+# te zetten, mits er geen echte credentials in staan.
+# =============================================================================
+
+igj_beschermende_plaatsingen:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DBT_HOST', 'postgres') }}"
+      port: "{{ env_var('DBT_PORT', '5432') | int }}"
+      user: "{{ env_var('DBT_USER', 'dbt') }}"
+      password: "{{ env_var('DBT_PASSWORD', 'dbt_demo_2024') }}"
+      dbname: "{{ env_var('DBT_DBNAME', 'igj_demo') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'public') }}"
+      threads: "{{ env_var('DBT_THREADS', '4') | int }}"
+      keepalives_idle: 0

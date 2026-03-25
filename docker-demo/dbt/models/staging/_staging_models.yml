@@ -1,0 +1,113 @@
+# =============================================================================
+# _staging_models.yml
+# Documentatie en tests voor de staging laag modellen
+#
+# Leer-tip: Het underscore-prefix (_) is een conventie om configuratiebestanden
+# te onderscheiden van SQL-modellen in dezelfde map. DBT verwerkt .yml bestanden
+# niet als modellen - alleen .sql bestanden worden als modellen beschouwd.
+# =============================================================================
+
+version: 2
+
+models:
+  - name: stg_beschermende_plaatsingen
+    description: >
+      Opgeschoonde staging view van de ruwe beschermende plaatsingen landingstabel.
+      Dit model cast alle datatypes, normaliseert tekstwaarden en genereert een
+      surrogate key. Het bevat alle records inclusief correcties en intrekkingen
+      - filtering vindt plaats in downstream modellen.
+
+      Eén rij in dit model = één aangeleverd record door een zorgaanbieder
+      voor een specifiek kwartaal. Bij kwartaalcorrecties zijn meerdere rijen
+      aanwezig met hetzelfde bron_systeem_id maar een ander kwartaal_levering.
+
+    columns:
+      - name: plaatsing_sk
+        description: >
+          Surrogate key gegenereerd door dbt_utils.generate_surrogate_key() op basis
+          van bron_systeem_id en kwartaal_levering. Uniek per aanlevering van een record.
+        tests:
+          - not_null
+          - unique
+
+      - name: bron_id
+        description: Originele auto-increment id uit de bronlandingstabel.
+        tests:
+          - not_null
+
+      - name: bsn_geanonimiseerd
+        description: Gehashte BSN van de cliënt, getrimed. Zie source definitie voor details.
+        tests:
+          - not_null
+
+      - name: zorgaanbieder_agb_code
+        description: AGB-code gestandaardiseerd naar 8 tekens met voorloopnullen.
+        tests:
+          - not_null
+
+      - name: bron_systeem_id
+        description: >
+          Unieke identifier bij de zorgaanbieder. NIET uniek in dit staging model
+          omdat correcties in latere kwartalen hetzelfde bron_systeem_id gebruiken.
+
+      - name: machtigingsvorm
+        description: "Genormaliseerde machtigingsvorm (uppercase). Waarden: IBS, RM, ZM."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['IBS', 'RM', 'ZM']
+
+      - name: startdatum_plaatsing
+        description: Startdatum als DATE type (zonder tijdcomponent).
+        tests:
+          - not_null
+
+      - name: einddatum_plaatsing
+        description: Einddatum als DATE type. NULL als plaatsing nog actief is.
+
+      - name: locatie_code
+        description: Locatiecode genormaliseerd naar uppercase.
+        tests:
+          - not_null
+
+      - name: diagnose_code
+        description: ICD-10 code zonder punt, uppercase. Bijv. 'F200' (was 'F20.0').
+        tests:
+          - not_null
+
+      - name: diagnose_code_origineel
+        description: Originele ICD-10 code met punt, voor rapportage. Bijv. 'F20.0'.
+
+      - name: kwartaal_levering
+        description: Kwartaalcode in format 'JJJJQK'. Bijv. '2024Q3'.
+        tests:
+          - not_null
+
+      - name: levering_jaar
+        description: Jaar geëxtraheerd uit kwartaal_levering. Bijv. 2024.
+        tests:
+          - not_null
+
+      - name: levering_kwartaal_nummer
+        description: Kwartaalnummer geëxtraheerd (1-4). Bijv. 3.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4]
+
+      - name: aanleverdatum
+        description: Datum van aanlevering als DATE type.
+        tests:
+          - not_null
+
+      - name: record_status
+        description: "Status van de aanlevering in lowercase. Waarden: nieuw, correctie, intrekking."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['nieuw', 'correctie', 'intrekking']
+
+      - name: _geladen_op
+        description: Technische tijdstempel van wanneer DBT dit model heeft uitgevoerd.
+        tests:
+          - not_null

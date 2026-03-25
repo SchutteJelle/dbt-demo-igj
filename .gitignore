@@ -2,9 +2,11 @@
 target/
 dbt_packages/
 logs/
+.user.yml
 
 # Gevoelige configuratiebestanden
 profiles.yml
+!docker-demo/dbt/profiles.yml
 
 # Python
 __pycache__/

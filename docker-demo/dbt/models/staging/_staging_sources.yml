@@ -1,0 +1,95 @@
+# =============================================================================
+# _staging_sources.yml
+# Definitie van de ruwe brondata.
+#
+# In deze Docker demo zijn de brondata geladen via 'dbt seed' in het 'raw' schema.
+# In productie zouden dit landingstabellen zijn gevuld door een uploadportaal.
+#
+# Leer-tip: Sources zijn het startpunt van de DBT lineage graph.
+# Ze verwijzen naar tabellen die BUITEN DBT beheerd worden (ruwe brondata).
+# =============================================================================
+
+version: 2
+
+sources:
+  - name: igj_raw
+    description: >
+      Ruwe landingstabellen gevuld met beschermende plaatsingen data.
+      In de Docker demo zijn deze tabellen geladen via 'dbt seed'.
+      In productie worden ze gevuld door het IGJ uploadportaal.
+    schema: raw                    # PostgreSQL schema naam (aangemaakt door dbt seed)
+    loader: dbt_seed               # Voor de demo: dbt seed. In productie: uploadportaal.
+    loaded_at_field: aanleverdatum
+
+    freshness:
+      warn_after: {count: 95, period: day}
+      error_after: {count: 180, period: day}
+
+    tables:
+      - name: beschermende_plaatsingen
+        description: >
+          Alle aangeleverde beschermende plaatsingen per zorgaanbieder per kwartaal.
+          Een plaatsing beschrijft een periode van onvrijwillige zorg voor een cliënt
+          op basis van een Wvggz-machtiging.
+
+        columns:
+          - name: id
+            description: Surrogate key, auto-increment integer.
+            tests:
+              - not_null
+              - unique
+
+          - name: bsn_geanonimiseerd
+            description: Gehashte BSN van de cliënt (SHA-256).
+            tests:
+              - not_null
+
+          - name: zorgaanbieder_agb_code
+            description: AGB-code van de zorgaanbieder (8-cijferig).
+            tests:
+              - not_null
+
+          - name: machtigingsvorm
+            description: Juridische grondslag (IBS, RM of ZM).
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['IBS', 'RM', 'ZM', 'ibs', 'rm', 'zm']
+
+          - name: startdatum_plaatsing
+            description: Datum waarop de beschermende plaatsing is gestart.
+            tests:
+              - not_null
+
+          - name: einddatum_plaatsing
+            description: Datum waarop de plaatsing is beëindigd. NULL = nog actief.
+
+          - name: locatie_code
+            description: Locatiecode van de zorgaanbieder.
+            tests:
+              - not_null
+
+          - name: diagnose_code
+            description: ICD-10 diagnosecode.
+            tests:
+              - not_null
+
+          - name: kwartaal_levering
+            description: Kwartaal van aanlevering in format 'JJJJQK'. Bijv. '2024Q3'.
+            tests:
+              - not_null
+
+          - name: aanleverdatum
+            description: Datum van aanlevering.
+            tests:
+              - not_null
+
+          - name: bron_systeem_id
+            description: Unieke identifier in het bronsysteem van de zorgaanbieder.
+
+          - name: record_status
+            description: nieuw / correctie / intrekking.
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['nieuw', 'correctie', 'intrekking']
