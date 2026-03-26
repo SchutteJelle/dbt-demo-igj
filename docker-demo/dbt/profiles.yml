@@ -29,3 +29,14 @@ igj_beschermende_plaatsingen:
       schema: "{{ env_var('DBT_SCHEMA', 'public') }}"
       threads: "{{ env_var('DBT_THREADS', '4') | int }}"
       keepalives_idle: 0
+
+    local:
+      type: postgres
+      host: 127.0.0.1
+      port: 5433
+      user: dbt
+      password: dbt_demo_2024
+      dbname: igj_demo
+      schema: public
+      threads: 4
+      keepalives_idle: 0

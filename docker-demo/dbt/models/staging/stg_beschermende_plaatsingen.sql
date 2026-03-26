@@ -25,8 +25,76 @@ WITH brondata AS (
         kwartaal_levering,
         aanleverdatum,
         bron_systeem_id,
-        record_status
-    FROM {{ source('igj_raw', 'beschermende_plaatsingen') }}
+        record_status,
+        xml_payload
+    FROM {{ ref('raw_xml_beschermende_plaatsingen') }}
+
+),
+
+uitgepakt_xml AS (
+
+    SELECT
+        COALESCE(
+            NULLIF((xpath('/plaatsing/id/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            id::text
+        ) AS id,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/bsn_geanonimiseerd/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            bsn_geanonimiseerd
+        ) AS bsn_geanonimiseerd,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/zorgaanbieder_agb_code/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            zorgaanbieder_agb_code
+        ) AS zorgaanbieder_agb_code,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/machtigingsvorm/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            machtigingsvorm
+        ) AS machtigingsvorm,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/startdatum_plaatsing/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            startdatum_plaatsing::text
+        ) AS startdatum_plaatsing,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/einddatum_plaatsing/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            einddatum_plaatsing::text
+        ) AS einddatum_plaatsing,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/locatie_code/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            locatie_code
+        ) AS locatie_code,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/diagnose_code/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            diagnose_code
+        ) AS diagnose_code,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/kwartaal_levering/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            kwartaal_levering
+        ) AS kwartaal_levering,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/aanleverdatum/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            aanleverdatum::text
+        ) AS aanleverdatum,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/bron_systeem_id/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            bron_systeem_id
+        ) AS bron_systeem_id,
+
+        COALESCE(
+            NULLIF((xpath('/plaatsing/record_status/text()', xmlparse(document xml_payload)))[1]::text, ''),
+            record_status
+        ) AS record_status
+
+    FROM brondata
 
 ),
 
@@ -74,7 +142,7 @@ opgeschoond AS (
         -- PostgreSQL: NOW() (SQL Server gebruikte GETDATE())
         NOW()                                            AS _geladen_op
 
-    FROM brondata
+    FROM uitgepakt_xml
 
 )
 

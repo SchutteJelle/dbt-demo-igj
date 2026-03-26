@@ -93,3 +93,8 @@ sources:
               - not_null
               - accepted_values:
                   values: ['nieuw', 'correctie', 'intrekking']
+
+          - name: xml_payload
+            description: Ruwe XML-aanlevering van de plaatsing zoals ontvangen in de landinglaag.
+            tests:
+              - not_null

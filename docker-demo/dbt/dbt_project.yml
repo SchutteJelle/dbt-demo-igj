@@ -50,6 +50,7 @@ seeds:
       aanleverdatum: date
       bron_systeem_id: varchar
       record_status: varchar
+      xml_payload: varchar
 
 # =============================================================================
 # Model-configuraties per laag (drielagenarchitectuur)

@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: dbt_demo_postgres
+    environment:
+      POSTGRES_USER: ${DBT_USER:-dbt}
+      POSTGRES_PASSWORD: ${DBT_PASSWORD:-dbt_demo_2024}
+      POSTGRES_DB: ${DBT_DBNAME:-igj_demo}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DBT_USER:-dbt} -d ${DBT_DBNAME:-igj_demo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  dbt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dbt_demo_runner
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DBT_HOST: postgres
+      DBT_PORT: 5432
+      DBT_USER: ${DBT_USER:-dbt}
+      DBT_PASSWORD: ${DBT_PASSWORD:-dbt_demo_2024}
+      DBT_DBNAME: ${DBT_DBNAME:-igj_demo}
+      DBT_SCHEMA: ${DBT_SCHEMA:-public}
+      DBT_THREADS: ${DBT_THREADS:-4}
+      DBT_PROFILES_DIR: /usr/app/dbt
+    volumes:
+      - ./:/usr/app/dbt
+    working_dir: /usr/app/dbt
+    entrypoint: ["bash", "-lc"]
+    command: ["dbt --version"]
+
+volumes:
+  postgres_data:

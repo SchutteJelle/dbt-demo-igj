@@ -1,0 +1,11 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "docker compose": true
+    },
+    "dbt.project-dir": "${workspaceFolder}",
+    "dbt.profiles-dir": "${workspaceFolder}",
+    "dbt.queryComments": true,
+    "[sql]": {
+        "editor.defaultFormatter": "dbt-labs.dbt-power-user"
+    }
+}

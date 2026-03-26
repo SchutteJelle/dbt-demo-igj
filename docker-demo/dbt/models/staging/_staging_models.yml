@@ -10,6 +10,24 @@
 version: 2
 
 models:
+  - name: raw_xml_beschermende_plaatsingen
+    description: >
+      Tussenmodel dat de ruwe landingstabel met XML payload 1-op-1 beschikbaar
+      maakt in de staging laag. Dit model maakt in dbt Docs expliciet zichtbaar
+      dat XML als bronformaat binnenkomt voordat parsing plaatsvindt.
+
+    columns:
+      - name: id
+        description: Originele sleutel uit de bronlanding.
+        tests:
+          - not_null
+          - unique
+
+      - name: xml_payload
+        description: Ruwe XML van de aangeleverde plaatsing.
+        tests:
+          - not_null
+
   - name: stg_beschermende_plaatsingen
     description: >
       Opgeschoonde staging view van de ruwe beschermende plaatsingen landingstabel.

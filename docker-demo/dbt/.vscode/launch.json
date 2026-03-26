@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "dbt: Debug Connection",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "docker compose run --rm dbt \"dbt debug\""
+    },
+    {
+      "name": "dbt: Seed + Run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "docker compose up -d postgres && docker compose run --rm dbt \"dbt seed --full-refresh && dbt run\""
+    },
+    {
+      "name": "dbt: Test",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "docker compose up -d postgres && docker compose run --rm dbt \"dbt test\""
+    },
+    {
+      "name": "dbt: Full Demo (deps + seed + run + test)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "docker compose up -d postgres && docker compose run --rm dbt \"dbt deps && dbt seed --full-refresh && dbt run && dbt test\""
+    }
+  ]
+}
